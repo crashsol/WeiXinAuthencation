@@ -12,7 +12,7 @@ using SchoolHelper.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
+using Microsoft.AspNetCore.Authentication.WeChat;
 
 namespace SchoolHelper
 {
@@ -37,11 +37,10 @@ namespace SchoolHelper
             }).AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddAuthentication()
-             .AddWeixin(wechatOptions => 
-             {
-                 wechatOptions.AuthorizationEndpoint = "https://open.weixin.qq.com/connect/oauth2/authorize";
-                wechatOptions.ClientId = Configuration["Authentication:WeChat:AppId"];
-                wechatOptions.ClientSecret = Configuration["Authentication:WeChat:AppSecret"];              
+             .AddWeChat(wechatOptions => 
+             {               
+                wechatOptions.AppId = Configuration["Authentication:WeChat:AppId"];
+                wechatOptions.AppSecret = Configuration["Authentication:WeChat:AppSecret"];              
              });
             
             services.AddControllersWithViews().AddNewtonsoftJson();
