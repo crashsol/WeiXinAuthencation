@@ -12,6 +12,7 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.Authentication.WeChat
 {
@@ -87,79 +88,17 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
         /// <returns></returns>
         protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
         {
-            //第一步，处理工作
-            AuthenticationProperties properties = null;
-            var query = Request.Query;
-            //微信只会发送code和state两个参数，不会返回错误消息           
-            var code = query["code"];
-            //var state = query["state"];
-            //获取使用别名传递的state
-            var state = query[query["state"]];
-            //若用户禁止授权，则重定向后不会带上code参数，仅会带上state参数        
-
-            properties = Options.StateDataFormat.Unprotect(state);
-            if (properties == null)
+            //将oauthState赋值给state
+            if (Request.Query.TryGetValue(OauthState, out var stateValue))
             {
-                return HandleRequestResult.Fail("The oauth state was missing or invalid.");
-            }
-            // OAuth2 10.12 CSRF
-            if (!ValidateCorrelationId(properties))
-            {
-                return HandleRequestResult.Fail("Correlation failed.");
-            }
-            if (StringValues.IsNullOrEmpty(code)) //code为null就是
-            {
-                return HandleRequestResult.Fail("Code was not found.");
-            }
-
-            //第二步，通过Code获取Access Token
-            var tokens = await ExchangeCodeAsync(new OAuthCodeExchangeContext(properties, code, ""));
-            if (tokens.Error != null)
-            {
-                return HandleRequestResult.Fail(tokens.Error);
-            }
-            if (string.IsNullOrEmpty(tokens.AccessToken))
-            {
-                return HandleRequestResult.Fail("Failed to retrieve access token.");
-            }
-            var identity = new ClaimsIdentity(ClaimsIssuer);
-            if (Options.SaveTokens)
-            {
-                var authTokens = new List<AuthenticationToken>();
-                authTokens.Add(new AuthenticationToken { Name = "access_token", Value = tokens.AccessToken });
-                if (!string.IsNullOrEmpty(tokens.RefreshToken))
+                var query = Request.Query.ToDictionary(c => c.Key, c => c.Value, StringComparer.OrdinalIgnoreCase);
+                if (query.TryGetValue(State, out var _))
                 {
-                    authTokens.Add(new AuthenticationToken { Name = "refresh_token", Value = tokens.RefreshToken });
+                    query[State] = stateValue;
+                    Request.QueryString = QueryString.Create(query);
                 }
-                if (!string.IsNullOrEmpty(tokens.TokenType)) //微信就没有这个
-                {
-                    authTokens.Add(new AuthenticationToken { Name = "token_type", Value = tokens.TokenType });
-                }
-                if (!string.IsNullOrEmpty(tokens.ExpiresIn))
-                {
-                    int value;
-                    if (int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
-                    {
-                        var expiresAt = Clock.UtcNow + TimeSpan.FromSeconds(value);
-                        authTokens.Add(new AuthenticationToken
-                        {
-                            Name = "expires_at",
-                            Value = expiresAt.ToString("o", CultureInfo.InvariantCulture)
-                        });
-                    }
-                }
-
-                properties.StoreTokens(authTokens);
             }
-            var ticket = await CreateTicketAsync(identity, properties, tokens);
-            if (ticket != null)
-            {
-                return HandleRequestResult.Success(ticket);
-            }
-            else
-            {
-                return HandleRequestResult.Fail("Failed to retrieve user information from remote server.");
-            }
+            return await base.HandleRemoteAuthenticateAsync();
         }
 
         /// <summary>
@@ -258,10 +197,7 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
             {
                 return string.Join(",", Options.Scope);
             }
-
-        }
-
-        
+        }      
 
 
     }
