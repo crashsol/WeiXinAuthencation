@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolHelper", "SchoolHelper\SchoolHelper.csproj", "{A27EF293-ED6D-48F1-9901-85E0683E4720}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchoolHelper", "SchoolHelper\SchoolHelper.csproj", "{A27EF293-ED6D-48F1-9901-85E0683E4720}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeiXinAuthentication", "WeiXinAuthentication\WeiXinAuthentication.csproj", "{EC57BA48-708D-4B01-AE62-B208C5C648C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{A27EF293-ED6D-48F1-9901-85E0683E4720}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A27EF293-ED6D-48F1-9901-85E0683E4720}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A27EF293-ED6D-48F1-9901-85E0683E4720}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC57BA48-708D-4B01-AE62-B208C5C648C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC57BA48-708D-4B01-AE62-B208C5C648C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC57BA48-708D-4B01-AE62-B208C5C648C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC57BA48-708D-4B01-AE62-B208C5C648C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

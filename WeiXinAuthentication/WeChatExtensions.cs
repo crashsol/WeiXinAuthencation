@@ -33,7 +33,6 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
                     typeof(WeChatHandler).FullName,
                     typeof(string).FullName, WeChatDefaults.AuthenticationScheme,
                     "v1");
-
                 var dataFormat = new CachedPropertiesDataFormat(distributedCache, dataProtector);
                 return dataFormat;
             });

@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Http;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.Net.Http.Headers;
-using static AspNet.Security.OAuth.Weixin.WeixinAuthenticationConstants;
-
 namespace Microsoft.AspNetCore.Authentication.WeChat
 {
     public class WeChatOptions : OAuthOptions
@@ -75,7 +73,7 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
         /// <summary>
         /// 网站微信登录有两种场景，一种是在微信客户端内打开登录，一种是在微信客户端外登录。
         /// 在微信内登录直接转到让用户授权页面，在微信外则为显示二微码让用户扫描后在微信内授权。
-        /// AuthorizationEndpoint是在微信外登录地址，AuthorizationEndpoint2是微信内登录地址
+        /// AuthorizationEndpoint是在微信外登录地址，AuthorizationInWeiXinBrowerEndpoint是微信内登录地址
         /// </summary>
         public string AuthorizationInWeiXinBrowerEndpoint { get; set; }
 

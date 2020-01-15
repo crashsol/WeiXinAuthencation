@@ -11,6 +11,7 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Text.Json;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Authentication.WeChat
 {
@@ -18,8 +19,6 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
     {
 
         private readonly ISecureDataFormat<AuthenticationProperties> _secureDataFormat;
-
-
         private const string OauthState = "_oauthstate";
         private const string State = "state";
 
@@ -30,10 +29,11 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
         protected override async Task InitializeHandlerAsync()
         {
             await base.InitializeHandlerAsync();
+            //  是否使用
             if (Options.UseCachedStateDataFormat)
             {
                 Options.StateDataFormat = _secureDataFormat;
-            }       
+            }
         }
 
         public WeChatHandler(
@@ -46,11 +46,8 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
         {
             _secureDataFormat = secureDataFormat;
         }
-        /*
-         * Challenge 盘问握手认证协议
-         * 这个词有点偏，好多翻译工具都查不出。
-         * 这个解释才是有些靠谱 http://abbr.dict.cn/Challenge/CHAP
-         */
+
+      
         /// <summary>
         /// 构建请求CODE的Url地址（这是第一步，准备工作）
         /// </summary>
@@ -59,56 +56,29 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
         /// <returns></returns>
         protected override string BuildChallengeUrl(AuthenticationProperties properties, string redirectUri)
         {
+
+            string stateValue = Options.StateDataFormat.Protect(properties);
+
+            //重新生成回调地址，添加state别名,防止stateCode太长
+            redirectUri = QueryHelpers.AddQueryString(redirectUri, OauthState, stateValue);
+            //根据当前浏览器环境监测，是否是在微信浏览器内调用
+            var isMicroMessenger = Options.IsWeChatBrowser(Request);
+            var remoteUrl = isMicroMessenger ? Options.AuthorizationInWeiXinBrowerEndpoint
+                    : Options.AuthorizationEndpoint;
+            redirectUri = QueryHelpers.AddQueryString(remoteUrl, new Dictionary<string, string>
             {
-                string stateValue = Options.StateDataFormat.Protect(properties);
-                bool addRedirectHash = false;
-
-                if (!IsWeixinAuthorizationEndpointInUse())
-                {
-                    //Store state in redirectUri when authorizing Wechat Web pages to prevent "too long state parameters" error
-                    redirectUri = QueryHelpers.AddQueryString(redirectUri, OauthState, stateValue);
-                    addRedirectHash = true;
-                }
-
-                var isMicroMessenger = Options.IsWeChatBrowser(Request);
-                var remoteUrl = isMicroMessenger ? Options.AuthorizationInWeiXinBrowerEndpoint
-                        : Options.AuthorizationEndpoint;
-                redirectUri = QueryHelpers.AddQueryString(remoteUrl, new Dictionary<string, string>
-                {
-                    ["appid"] = Options.ClientId,
-                    ["scope"] = FormatScope(),
-                    ["response_type"] = "code",
-                    ["redirect_uri"] = redirectUri,
-                    [State] = addRedirectHash ? OauthState : stateValue
-                });
-
-                if (addRedirectHash)
-                {
-                    // The parameters necessary for Web Authorization of Wechat
-                    redirectUri += "#wechat_redirect";
-                }
-                return redirectUri;
+                ["appid"] = Options.ClientId,
+                ["scope"] = FormatScope(),
+                ["response_type"] = "code",
+                ["redirect_uri"] = redirectUri,
+                [State] =  OauthState 
+            });        
+            // 如果在微信外面登录，需要添加#wechat_redirect 参数
+            if (isMicroMessenger == false)
+            {
+                redirectUri += "#wechat_redirect";
             }
-            {
-                var scope = FormatScope();
-                var state = Options.StateDataFormat.Protect(properties);
-                var parameters = new Dictionary<string, string>()
-            {
-                { "appid", Options.ClientId },
-                { "redirect_uri", redirectUri },
-                { "response_type", "code" },
-                //{ "scope", scope },
-                //{ "state", state },
-            };
-                //判断当前请求是否由微信内置浏览器发出
-                var isMicroMessenger = Options.IsWeChatBrowser(Request);
-                var ret = QueryHelpers.AddQueryString(
-                   , parameters);
-
-                //scope 不能被UrlEncode
-                ret += $"&scope={scope}&state={state}";
-                return ret;
-            }
+            return redirectUri;
         }
 
         /// <summary>
@@ -120,10 +90,13 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
             //第一步，处理工作
             AuthenticationProperties properties = null;
             var query = Request.Query;
-            //微信只会发送code和state两个参数，不会返回错误消息
-            //若用户禁止授权，则重定向后不会带上code参数，仅会带上state参数
+            //微信只会发送code和state两个参数，不会返回错误消息           
             var code = query["code"];
-            var state = query["state"];
+            //var state = query["state"];
+            //获取使用别名传递的state
+            var state = query[query["state"]];
+            //若用户禁止授权，则重定向后不会带上code参数，仅会带上state参数        
+
             properties = Options.StateDataFormat.Unprotect(state);
             if (properties == null)
             {
@@ -140,7 +113,7 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
             }
 
             //第二步，通过Code获取Access Token
-            var tokens = await ExchangeCodeAsync(new OAuthCodeExchangeContext(properties,code,""));
+            var tokens = await ExchangeCodeAsync(new OAuthCodeExchangeContext(properties, code, ""));
             if (tokens.Error != null)
             {
                 return HandleRequestResult.Fail(tokens.Error);
@@ -166,7 +139,7 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
                 {
                     int value;
                     if (int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
-                    {                       
+                    {
                         var expiresAt = Clock.UtcNow + TimeSpan.FromSeconds(value);
                         authTokens.Add(new AuthenticationToken
                         {
@@ -178,7 +151,6 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
 
                 properties.StoreTokens(authTokens);
             }
-
             var ticket = await CreateTicketAsync(identity, properties, tokens);
             if (ticket != null)
             {
@@ -216,9 +188,9 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
 
                 return OAuthTokenResponse.Failed(new Exception("An error occurred while retrieving an access token."));
             }
-            return OAuthTokenResponse.Success(payload);            
-        }      
-       
+            return OAuthTokenResponse.Success(payload);
+        }
+
 
         /// <summary>
         /// 创建身份票据(这是第三步) 
@@ -268,17 +240,9 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
             context.RunClaimActions();
 
             await Options.Events.CreatingTicket(context);
-            return new AuthenticationTicket(context.Principal, context.Properties, Scheme.Name);           
+            return new AuthenticationTicket(context.Principal, context.Properties, Scheme.Name);
         }
-
-        private static string GetOpenId(JsonDocument json)
-        {
-            return json.RootElement.GetString("openid");
-        }
-        private static string GetUnionId(JsonDocument json)
-        {
-            return json.RootElement.GetString("unionid");
-        }
+                   
 
         /// <summary>
         /// 根据是否为微信浏览器返回不同Scope
@@ -294,14 +258,10 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
             {
                 return string.Join(",", Options.Scope);
             }
-            
+
         }
 
-        private bool IsWeixinAuthorizationEndpointInUse()
-        {
-            return string.Equals(Options.AuthorizationEndpoint, WeixinAuthenticationDefaults.AuthorizationEndpoint, StringComparison.OrdinalIgnoreCase);
-        }
-
+        
 
 
     }
