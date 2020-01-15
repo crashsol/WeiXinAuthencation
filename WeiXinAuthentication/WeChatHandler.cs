@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
         protected override async Task InitializeHandlerAsync()
         {
             await base.InitializeHandlerAsync();
-            //  是否使用
+            //  是否使用分布式SecureDataFormat
             if (Options.UseCachedStateDataFormat)
             {
                 Options.StateDataFormat = _secureDataFormat;

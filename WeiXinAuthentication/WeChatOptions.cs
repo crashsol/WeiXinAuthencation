@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
         {
             CallbackPath = new PathString("/signin-wechat");
             AuthorizationEndpoint = WeChatDefaults.AuthorizationEndpoint;
-            AuthorizationInWeiXinBrowerEndpoint = WeChatDefaults.AuthorizationEndpoint2;
+            AuthorizationInWeiXinBrowerEndpoint = WeChatDefaults.AuthorizationInWeiXinBrowerEndpoint;
             TokenEndpoint = WeChatDefaults.TokenEndpoint;
             UserInformationEndpoint = WeChatDefaults.UserInformationEndpoint;
 
@@ -46,8 +46,7 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
                     return null;
                 }
                 return string.Join(",", value.EnumerateArray().Select(element => element.GetString()));
-            });          
-     
+            });   
 
             IsWeChatBrowser=(r) => r.Headers[HeaderNames.UserAgent].ToString().ToLower().Contains("micromessenger");
         }
