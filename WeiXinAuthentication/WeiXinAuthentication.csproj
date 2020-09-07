@@ -13,7 +13,7 @@
     <PackageProjectUrl>https://github.com/crashsol/WeiXinAuthencation</PackageProjectUrl>
     <PackageTags>Weixin,OAuth ,Authencation</PackageTags>
     <AssemblyName>WeiXinAuthentication</AssemblyName>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 </Project>
