@@ -31,13 +31,13 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
             Scope2.Add(UserInfoScope);
 
             //除了openid外，其余的都可能为空，因为微信获取用户信息是有单独权限的
-            ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "openid");
-            ClaimActions.MapJsonKey(ClaimTypes.Name, "nickname");
-            ClaimActions.MapJsonKey(ClaimTypes.Gender, "sex",ClaimValueTypes.Integer);
-            ClaimActions.MapJsonKey(ClaimTypes.Country, "country");//ClaimTypes.Locality
+            ClaimActions.MapJsonKey("urn:wechat:openid", "openid");
+            ClaimActions.MapJsonKey("urn:wechat:nickname", "nickname");
+            ClaimActions.MapJsonKey("urn:wechat:sex", "sex",ClaimValueTypes.Integer);
+            ClaimActions.MapJsonKey("urn:wechat:country", "country");//ClaimTypes.Locality
             ClaimActions.MapJsonKey("urn:wechat:province", "province");//ClaimTypes.StateOrProvince
             ClaimActions.MapJsonKey("urn:wechat:city", "city");//ClaimTypes.StreetAddress
-            ClaimActions.MapJsonKey(ClaimTypes.Uri, "headimgurl");
+            ClaimActions.MapJsonKey("urn:wechat:headimgurl", "headimgurl");
             ClaimActions.MapJsonKey("urn:wechat:unionid", "unionid");
             ClaimActions.MapCustomJson("urn:weixin:privilege", user =>
             {
