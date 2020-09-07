@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Authors>Crashsol</Authors>
-    <Description>Oauth 微信登录</Description>
+    <Description>Oauth 微信登录，修改了ClaimType Name映射</Description>
     <OutputType>Library</OutputType>
     <IsPackable>true</IsPackable>
   </PropertyGroup>  
@@ -13,7 +13,7 @@
     <PackageProjectUrl>https://github.com/crashsol/WeiXinAuthencation</PackageProjectUrl>
     <PackageTags>Weixin,OAuth ,Authencation</PackageTags>
     <AssemblyName>WeiXinAuthentication</AssemblyName>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 </Project>

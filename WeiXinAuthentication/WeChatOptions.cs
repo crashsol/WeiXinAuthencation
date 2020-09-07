@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Authentication.WeChat
             ClaimActions.MapJsonKey("urn:wechat:city", "city");//ClaimTypes.StreetAddress
             ClaimActions.MapJsonKey("urn:wechat:headimgurl", "headimgurl");
             ClaimActions.MapJsonKey("urn:wechat:unionid", "unionid");
-            ClaimActions.MapCustomJson("urn:weixin:privilege", user =>
+            ClaimActions.MapCustomJson("urn:wechat:privilege", user =>
             {
                 if (!user.TryGetProperty("privilege", out var value) || value.ValueKind != System.Text.Json.JsonValueKind.Array)
                 {
